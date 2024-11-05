@@ -29,11 +29,6 @@ export const post = async (request: Request, response: Response) => {
         const imageUrl = jsonData.productProjection?.masterVariant?.images?.[0]?.url;
         const productName = jsonData.productProjection?.name?.en || 'Product Name Missing'; 
 
-        logger.info(`✅ Processing product: ${productName} (ID: ${productId})`);
-
-        logger.info('✅ Creating custom object for product description.');
-        await createProductCustomObject(productId, imageUrl, productName);
-
         if (productId && imageUrl) {
             const attributes: ProductAttribute[] = jsonData.productProjection?.masterVariant?.attributes || [];
             
@@ -56,6 +51,11 @@ export const post = async (request: Request, response: Response) => {
                     productName
                 });
             }
+
+            logger.info(`✅ Processing product: ${productName} (ID: ${productId})`);
+
+            logger.info('✅ Creating custom object for product description.');
+            await createProductCustomObject(productId, imageUrl, productName);
 
             logger.info('✅ Sending product image to Vision AI.');
             const imageData = await productAnalysis(imageUrl);
