@@ -1,7 +1,7 @@
 import { createApiRoot } from '../../client/create.client';
 import { logger } from '../../utils/logger.utils';
 
-export async function updateCustomObjectWithDescription(productId: string, description: string, imageUrl: string, productName: string) {
+export async function updateCustomObjectWithDescription(productId: string, productName: string, imageUrl: string, description: string) {
     try {
         const apiRoot = createApiRoot();
 
