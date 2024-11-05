@@ -2,8 +2,9 @@ import { Request, Response } from 'express';
 import { logger } from '../utils/logger.utils';
 import { productAnalysis } from '../services/Vision AI/productAnalysis.service';
 import { generateProductDescription } from '../services/Generative AI/descriptionGeneration.service';
-import { updateProductDescription } from '../repository/Product/product.repository';
 import { ProductAttribute } from '../interfaces/productAttribute.interface';
+import { createProductCustomObject } from '../repository/Custom Object/createCustomObject.repository';
+import { updateCustomObjectWithDescription } from '../repository/Custom Object/updateCustomObjectWithDescription';
 
 export const post = async (request: Request, response: Response) => {
     try {
@@ -26,7 +27,12 @@ export const post = async (request: Request, response: Response) => {
 
         const productId = jsonData.productProjection?.id;
         const imageUrl = jsonData.productProjection?.masterVariant?.images?.[0]?.url;
+        const productName = jsonData.productProjection?.name?.en || 'Product Name Missing'; 
 
+        logger.info(`✅ Processing product: ${productName} (ID: ${productId})`);
+
+        logger.info('✅ Creating custom object for product description.');
+        await createProductCustomObject(productId, imageUrl, productName);
 
         if (productId && imageUrl) {
             const attributes: ProductAttribute[] = jsonData.productProjection?.masterVariant?.attributes || [];
@@ -47,6 +53,7 @@ export const post = async (request: Request, response: Response) => {
                     message: '❌ The option for automatic description generation is not enabled.',
                     productId,
                     imageUrl,
+                    productName
                 });
             }
 
@@ -56,18 +63,18 @@ export const post = async (request: Request, response: Response) => {
             logger.info('✅ Sending image data to Generative AI.');
             const description = await generateProductDescription(imageData);
 
-            logger.info('✅ Sending image description to Commerce Tools.');
-            const updateResponse = await updateProductDescription(productId, description);
+            logger.info('✅ Updating custom object with generated description.');
+            await updateCustomObjectWithDescription(productId, productName, imageUrl, description);
 
             logger.info('✅ Process completed successfully.');
             logger.info('⌛ Waiting for next event message.');
 
             return response.status(200).send({
                 productId,
+                productName,
                 imageUrl,
                 description,
                 productAnalysis: imageData,
-                commerceToolsUpdate: updateResponse.body,
             });
         }
         
