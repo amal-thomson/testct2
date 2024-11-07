@@ -7,7 +7,6 @@ export async function updateCustomObjectWithDescription(productId: string, produ
 
         logger.info(`✅ Fetching custom object for product ID: ${productId} to get current version.`);
         
-        // Fetch the existing custom object to get the current version
         const customObjectResponse = await apiRoot.customObjects().withContainerAndKey({
             container: "temporaryDescription",
             key: productId
@@ -23,7 +22,6 @@ export async function updateCustomObjectWithDescription(productId: string, produ
 
         logger.info(`✅ Updating custom object for product ID: ${productId} with generated description, imageUrl, and productName.`);
         
-        // Update the custom object with the generated description, imageUrl, and productName
         const updateResponse = await apiRoot.customObjects().post({
             body: {
                 container: "temporaryDescription",
